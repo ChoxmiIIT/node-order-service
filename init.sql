@@ -1,0 +1,7 @@
+CREATE DATABASE IF NOT EXISTS orderdb;
+USE orderdb;
+CREATE TABLE IF NOT EXISTS orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cart_items TEXT,
+    total_price DECIMAL(10,2)
+);

@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-orderdb-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orderdb-initdb
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS orderdb;
+    USE orderdb;
+    CREATE TABLE IF NOT EXISTS orders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        cart_items TEXT,
+        total_price DECIMAL(10,2)
+    );
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-orderdb
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: mysql-orderdb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-orderdb
+spec:
+  selector:
+    matchLabels:
+      app: mysql-orderdb
+  template:
+    metadata:
+      labels:
+        app: mysql-orderdb
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: rootpass
+        - name: MYSQL_DATABASE
+          value: orderdb
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+        - name: initdb
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-orderdb-pvc
+      - name: initdb
+        configMap:
+          name: orderdb-initdb
