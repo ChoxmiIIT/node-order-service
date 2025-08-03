@@ -34,4 +34,8 @@ app.get('/orders', (req, res) => {
   });
 });
 
+app.get('/', (req, res) => {
+    res.send('Welcome to the Order Service');
+});
+
 app.listen(5000, () => console.log('Order Service running on port 5000'));
